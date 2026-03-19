@@ -1,0 +1,30 @@
+#!/bin/bash
+set -e
+
+# Prevent execution during host-side package staging.
+if [ "${HOST_BUILD_STAGE:-0}" -eq 1 ]; then
+    exit 0
+fi
+
+PKG_NAME="${DPKG_MAINTSCRIPT_PACKAGE}"
+LIST_FILE="/var/lib/dpkg/info/${PKG_NAME}.list"
+KERNELS=""
+
+if [ -f "$LIST_FILE" ]; then
+    KERNELS=$(grep -E '^/lib/modules/.*/.*/f81601a\.ko$' "$LIST_FILE" | awk -F/ '{print $4}' | sort -u || true)
+fi
+
+if [ -z "$KERNELS" ]; then
+    KERNELS="$(uname -r)"
+fi
+
+for kv in $KERNELS; do
+    if [ -f "/boot/System.map-$kv" ]; then
+        depmod -F "/boot/System.map-$kv" "$kv" || true
+    else
+        depmod -a "$kv" || true
+    fi
+    echo "Updated module dependencies for kernel: $kv"
+done
+
+exit 0
