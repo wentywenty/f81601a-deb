@@ -1,0 +1,8 @@
+debian/*debhelper*
+debian/f81601a*
+debian/files
+*.ko
+*mod*
+*.o
+*odule*
+*.cmd

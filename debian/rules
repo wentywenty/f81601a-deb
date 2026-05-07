@@ -1,0 +1,27 @@
+#!/usr/bin/make -f
+export DH_VERBOSE=1
+
+# Extract env vars locally (instead of include causing make syntax errs)
+%:
+	dh $@
+
+override_dh_auto_build:
+	. ./env.sh && \
+	CROSS=$${CCACHE:+"$$CCACHE "}$$KERNEL_COMPILER && \
+	make -C $$KERNEL_SRC M=$(CURDIR) ARCH=$$ARCH CROSS_COMPILE="$$CROSS" modules -j$$(nproc)
+
+override_dh_auto_install:
+	. ./env.sh && \
+	CROSS=$${CCACHE:+"$$CCACHE "}$$KERNEL_COMPILER && \
+	make -C $$KERNEL_SRC M=$(CURDIR) ARCH=$$ARCH CROSS_COMPILE="$$CROSS" \
+		INSTALL_MOD_PATH=$(CURDIR)/debian/f81601a-can \
+		INSTALL_MOD_DIR=$$INSTALL_MOD_DIR \
+		DEPMOD=true \
+		modules_install
+	
+	find $(CURDIR)/debian/f81601a-can/lib/modules -name "modules.*" -type f -delete || true
+
+override_dh_strip:
+	dh_strip --exclude=.ko
+
+override_dh_shlibdeps:
