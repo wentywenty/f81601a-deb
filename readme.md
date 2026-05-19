@@ -1,43 +1,120 @@
-# f81601a-deb 构建说明
+# f81601a - Fintek F81601A PCIe CAN Driver (DKMS)
 
-该目录用于将 `f81601a` 内核驱动编译并打包为 Debian 包，流程参考 `igh-deb`。
+Driver for Fintek F81601A PCIe CAN controller (SJA1000-based), 2 CAN channels.
 
-## 1. 配置环境
-编辑 `env.sh`，确认以下变量：
+| Item | Value |
+|---|---|
+| Driver version | v1.03-20250515v2 |
+| Kernel module | `f81601a` |
+| PCI ID | `1c29:2004` |
+| CAN channels | 2 |
 
-- `KERNEL_COMPILER`: 交叉编译器前缀（例如 `aarch64-none-linux-gnu-`）
-- `KERNEL_SRC`: 目标内核源码目录（必须已配置/可编译）
-- `ARCH`: 目标架构（默认 `arm64`）
-- `PACKAGE_NAME` / `DEB_VERSION`: 包名和版本
+## Requirements
 
-## 2. 执行构建
+- Linux kernel >= 4.x with SocketCAN support
+- `dkms`, `build-essential`, `linux-headers-$(uname -r)`
 
-```bash
-cd f81601a-deb
-chmod +x build.sh env.sh debian/DEBIAN/postinst debian/DEBIAN/postrm debian/DEBIAN/preinst debian/DEBIAN/prerm
-./build.sh
-```
+## Installation
 
-也可以用参数临时覆盖：
+**From pre-built .deb (recommended):**
 
 ```bash
-./build.sh <KERNEL_COMPILER> <KERNEL_SRC> <ARCH>
+sudo apt install linux-headers-$(uname -r)
+sudo dpkg -i f81601a-dkms_1.03.20250515_all.deb
 ```
 
-## 3. 输出结果
-
-构建成功后会在 `output/` 目录生成：
-
-- `*.deb`：可安装 Debian 包
-- `_modules/`：临时模块安装目录
-- `package/`：打包 staging 目录
-
-## 4. 安装
-
-在目标设备上执行：
+**From source (build .deb locally):**
 
 ```bash
-sudo dpkg -i output/<your_deb_name>.deb
+sudo apt install dkms build-essential linux-headers-$(uname -r)
+make deb
+sudo dpkg -i f81601a-dkms_1.03.20250515_all.deb
 ```
 
-安装脚本会自动执行 `depmod`。
+**Manual module build (no DKMS):**
+
+```bash
+sudo apt install build-essential linux-headers-$(uname -r)
+make all
+sudo insmod f81601a.ko
+```
+
+## Verify Hardware
+
+```bash
+lspci | grep -i f81601
+dmesg | grep f81601
+ls /sys/class/net | grep can
+```
+
+Expected: `can0`, `can1`
+
+## CAN Channel Configuration
+
+Set bitrate and bring up:
+
+```bash
+sudo ip link set can0 type can bitrate 500000
+sudo ip link set can0 up
+sudo ip link set can1 type can bitrate 500000
+sudo ip link set can1 up
+```
+
+View settings:
+
+```bash
+ip -details link show can0
+```
+
+## Sending / Receiving
+
+```bash
+# Receive
+candump can0
+candump any
+
+# Send standard frame
+cansend can0 123#11.22.33.44.55.66.77.88
+
+# Send extended frame (29-bit ID)
+cansend can0 00000123#11.22.33.44.55.66.77.88
+```
+
+## Module Parameters
+
+| Parameter | Type | Default | Description |
+|---|---|---|---|
+| `enable_msi` | bool | 1 | Enable MSI interrupt |
+| `max_msi_ch` | uint | 2 | Max MSI channels |
+| `internal_clk` | int | -1 | Use internal clock (0/1 = 80MHz) |
+| `external_clk` | uint | - | External clock frequency |
+| `bus_restart_ms` | uint | - | Override bus restart timer |
+| `rx_guard_time` | uint | - | RX guard time |
+| `multi_tx_queue` | uint | - | Enable multi-TX queue |
+
+Example:
+
+```bash
+sudo modprobe f81601a enable_msi=0 internal_clk=1
+```
+
+## Unloading
+
+```bash
+sudo rmmod f81601a
+```
+
+To also remove DKMS registration:
+
+```bash
+sudo dkms remove -m f81601a -v 1.03.20250515 --all
+```
+
+## Cross-Compilation (Optional)
+
+For ARM64 cross-compilation, edit `env.sh` with your toolchain path and kernel source, then build manually:
+
+```bash
+. ./env.sh
+make -C $KERNEL_SRC M=$(pwd) ARCH=$ARCH CROSS_COMPILE=$KERNEL_COMPILER modules
+```

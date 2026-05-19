@@ -1,5 +1,0 @@
-f81601a-can (1.03.20250515-1) unstable; urgency=medium
-
-  * Standardized cross-compiled kernel module packaging.
-
- -- Flora <2321901849@qq.com>  Thu, 07 May 2026 12:00:00 +0000
