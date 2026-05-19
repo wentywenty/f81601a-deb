@@ -28,6 +28,7 @@ deb: clean-deb
 	@echo 'Package: $(MODULE_NAME)-dkms'             >  $(DEB_BUILD)/DEBIAN/control
 	@echo 'Version: $(MODULE_VER)'                    >> $(DEB_BUILD)/DEBIAN/control
 	@echo 'Architecture: all'                         >> $(DEB_BUILD)/DEBIAN/control
+	@echo 'Section: kernel'                           >> $(DEB_BUILD)/DEBIAN/control
 	@echo 'Maintainer: Flora <2321901849@qq.com>'     >> $(DEB_BUILD)/DEBIAN/control
 	@echo 'Depends: dkms (>= 2.2.0.3)'                >> $(DEB_BUILD)/DEBIAN/control
 	@echo 'Description: Fintek F81601A PCIe CAN kernel module (DKMS)' >> $(DEB_BUILD)/DEBIAN/control
