@@ -1,17 +1,16 @@
-name: Build DKMS Debian Package
+name: Build f81601a-dkms Deb Package
 
 on:
   push:
-    branches: [master]
-    tags: ['v*']
-  pull_request:
-    branches: [master]
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
+    outputs:
+      version: ${{ steps.version.outputs.PKG_VERSION }}
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
       - name: Tag vs changelog version check
         if: startsWith(github.ref, 'refs/tags/v')
@@ -29,25 +28,38 @@ jobs:
 
           echo "✅ Tag matches changelog: v$TAG_VERSION"
 
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y debhelper
+
       - name: Build .deb package
-        run: make deb
+        run: |
+          dpkg-buildpackage -us -uc -b
+          mv ../f81601a-dkms_*.deb .
+
+      - name: Set version
+        id: version
+        run: |
+          VER=$(dpkg-parsechangelog -S Version | cut -d'-' -f1 || echo "unknown")
+          echo "PKG_VERSION=$VER" >> $GITHUB_OUTPUT
 
       - name: Upload .deb artifact
         uses: actions/upload-artifact@v4
         with:
-          name: f81601a-dkms-deb
+          name: f81601a-dkms-v${{ steps.version.outputs.PKG_VERSION }}-all
           path: f81601a-dkms_*.deb
 
   release:
     if: startsWith(github.ref, 'refs/tags/v')
     needs: build
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     permissions:
       contents: write
     steps:
       - uses: actions/download-artifact@v4
         with:
-          name: f81601a-dkms-deb
+          name: f81601a-dkms-v${{ needs.build.outputs.version }}-all
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2

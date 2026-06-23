@@ -1,0 +1,13 @@
+Source: f81601a-dkms
+Section: kernel
+Priority: optional
+Maintainer: Flora <2321901849@qq.com>
+Build-Depends: debhelper (>= 12)
+
+Package: f81601a-dkms
+Architecture: all
+Depends: dkms (>= 2.2.0.3), ${misc:Depends}
+Description: Fintek F81601A PCIe CAN kernel module (DKMS)
+ This package contains the source for the Fintek F81601A
+ PCIe CAN driver, packaged with DKMS to auto-rebuild on
+ kernel upgrades. Supports up to 2 CAN channels.

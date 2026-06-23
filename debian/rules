@@ -1,0 +1,19 @@
+#!/usr/bin/make -f
+
+export DH_VERBOSE=1
+include /usr/share/dpkg/pkg-info.mk
+
+CROSS_COMPILE ?=
+DEB_HOST_ARCH ?= $(shell dpkg-architecture -qDEB_HOST_ARCH 2>/dev/null || echo amd64)
+KERNEL_ARCH := $(if $(filter amd64,$(DEB_HOST_ARCH)),x86,$(if $(filter arm64,$(DEB_HOST_ARCH)),arm64,$(DEB_HOST_ARCH)))
+export ARCH ?= $(KERNEL_ARCH)
+export KERNEL_SRC ?= /lib/modules/$(shell uname -r)/build
+
+%:
+	dh $@
+
+override_dh_auto_build:
+	# DKMS package: source files installed as-is, no compilation during deb build
+
+override_dh_auto_install:
+	# DKMS package: source files installed via .install file

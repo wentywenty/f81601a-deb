@@ -8,6 +8,14 @@ Module.symvers
 modules.order
 .tmp_versions/
 *.deb
+*.ddeb
+*.buildinfo
+*.changes
 *.cmd
 .ko.*
 f81601a.mod
+debian/.debhelper/
+debian/debhelper-build-stamp
+debian/files
+debian/*.substvars
+debian/f81601a-dkms/

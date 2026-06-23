@@ -1,0 +1,11 @@
+#!/bin/sh
+set -e
+
+NAME=f81601a
+VERSION=1.03.20250515
+
+case "$1" in
+  remove|upgrade|deconfigure)
+    dkms remove -m $NAME -v $VERSION --all 2>/dev/null || true
+  ;;
+esac

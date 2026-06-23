@@ -1,0 +1,11 @@
+f81601a-dkms (1.03.20250515-2) stable; urgency=medium
+
+  * Bump revision.
+
+ -- Flora <2321901849@qq.com>  Tue, 23 Jun 2026 10:00:00 +0800
+
+f81601a-dkms (1.03.20250515-1) stable; urgency=medium
+
+  * Initial release. Fintek F81601A PCIe CAN kernel module (DKMS).
+
+ -- Flora <2321901849@qq.com>  Mon, 23 Jun 2026 08:00:00 +0800

@@ -26,9 +26,9 @@ sudo dpkg -i f81601a-dkms_1.03.20250515_all.deb
 **From source (build .deb locally):**
 
 ```bash
-sudo apt install dkms build-essential linux-headers-$(uname -r)
-make deb
-sudo dpkg -i f81601a-dkms_1.03.20250515_all.deb
+sudo apt install debhelper
+dpkg-buildpackage -us -uc -b
+sudo dpkg -i ../f81601a-dkms_1.03.20250515_all.deb
 ```
 
 **Manual module build (no DKMS):**
@@ -112,9 +112,11 @@ sudo dkms remove -m f81601a -v 1.03.20250515 --all
 
 ## Cross-Compilation (Optional)
 
-For ARM64 cross-compilation, edit `env.sh` with your toolchain path and kernel source, then build manually:
+For ARM64 cross-compilation, set variables in `debian/rules` or export them before building:
 
 ```bash
-. ./env.sh
-make -C $KERNEL_SRC M=$(pwd) ARCH=$ARCH CROSS_COMPILE=$KERNEL_COMPILER modules
+export ARCH=arm64
+export KERNEL_SRC=/path/to/kernel/source
+export CROSS_COMPILE=/path/to/aarch64-none-linux-gnu-
+make -C $KERNEL_SRC M=$(pwd) ARCH=$ARCH CROSS_COMPILE=$CROSS_COMPILE modules
 ```

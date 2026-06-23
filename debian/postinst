@@ -1,0 +1,26 @@
+#!/bin/sh
+set -e
+
+NAME=f81601a
+VERSION=1.03.20250515
+
+case "$1" in
+  configure)
+    if ! dkms status -m $NAME -v $VERSION 2>/dev/null | grep -q added; then
+      dkms add -m $NAME -v $VERSION
+    fi
+    if [ -d "/lib/modules/$(uname -r)/build" ]; then
+      dkms build -m $NAME -v $VERSION
+      dkms install -m $NAME -v $VERSION
+    else
+      echo "ERROR: Kernel headers not found at /lib/modules/$(uname -r)/build" >&2
+      echo "" >&2
+      echo "DKMS needs kernel headers to compile the $NAME module." >&2
+      echo "Install the matching kernel headers package, for example:" >&2
+      echo "  Ubuntu/Debian:  apt install linux-headers-$(uname -r)" >&2
+      echo "  Rockchip:       apt install linux-headers-current-rockchip-rk3588" >&2
+      echo "  Or search:      apt search linux-headers | grep $(uname -r)" >&2
+      exit 1
+    fi
+  ;;
+esac
